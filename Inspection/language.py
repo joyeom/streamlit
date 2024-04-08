@@ -1,5 +1,4 @@
-
-language_pair = { #nac name : bb name
+language_pair = {  # nac name : bb name
     "ko-vi": "ko_KR-vi_VN",
     "zh-CN-ja": "zh_CN-ja_JP",
     "zh-TW-en": "zh_TW-en_US",
@@ -49,9 +48,26 @@ language_pair = { #nac name : bb name
     "en-es": "en_US-es_ES",
     "en-de": "en_US-de_DE",
     "en-ar": "en_US-ar_AE",
-    "en-zh-CN": "en_US-zh_CN"
+    "en-zh-CN": "en_US-zh_CN",
 }
 
-bb_language = ['es_ES', 'ko_KR', 'zh_TW','zh_CN', 'de_DE', 'vi_VN', 'pt_BR', 'tr_TR', 'pl_PL', 'id_ID', 'th_TH', 'ru_RU', 'ja_JP', 'ar_AE', 'fr_FR', 'it_IT', 'en_US','en_GB']
-
-    
+bb_language = [
+    "es_ES",
+    "ko_KR",
+    "zh_TW",
+    "zh_CN",
+    "de_DE",
+    "vi_VN",
+    "pt_BR",
+    "tr_TR",
+    "pl_PL",
+    "id_ID",
+    "th_TH",
+    "ru_RU",
+    "ja_JP",
+    "ar_AE",
+    "fr_FR",
+    "it_IT",
+    "en_US",
+    "en_GB",
+]
