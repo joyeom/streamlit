@@ -1,9 +1,6 @@
-from datetime import datetime
 import streamlit as st
 import tracemalloc
 import pandas as pd
-import re
-import numpy as np
 import Inspection.language as lang
 
 # NAC
@@ -18,21 +15,17 @@ from Inspection.EXCEL import emcha_error as excel_emcha_error
 from Inspection.EXCEL import red_error as excel_red_error
 from Inspection.EXCEL import emoji_error as excel_emoji_error
 
-import openpyxl
-from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side, Alignment
 import pandas as pd
-import io
+
 from io import BytesIO
 import zipfile
-from openpyxl.styles import Font
+
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Border, Side
-from openpyxl.utils.dataframe import dataframe_to_rows
-import pandas as pd
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment
 
@@ -131,13 +124,10 @@ class ProcessorMenu(Widget):
 
     def initUI(self):
         with st.spinner("내부검수 파일 만드는 중.."):
-            print("state", self.state)
-
             uploaded_files = self.state["uploaded_file"]
             environment = self.state["environment"]
             src_lang = self.state["src_lang"]
             tgt_lang = self.state["tgt_lang"]
-
             zip_buffer = self.create_zip_file(
                 uploaded_files, src_lang, tgt_lang, environment
             )
@@ -156,183 +146,19 @@ class ProcessorMenu(Widget):
 
         # Zip 파일 생성
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zf:
-
             for uploaded_file in uploaded_files:
-                if environment == "EXCEL":
-                    file_name, df = self.process_excel_data(
-                        uploaded_file, src_lang, tgt_lang
-                    )
-                elif environment == "NAC":
-                    file_name, df = self.process_nac_data(
-                        uploaded_file, src_lang, tgt_lang
-                    )
-
-                # DataFrame을 Excel 파일로 변환하여 BytesIO에 쓰기
-                excel_buffer = BytesIO()
-
-                # original file
-                file_object = io.BytesIO(uploaded_file.getvalue())
-                wb = load_workbook(file_object)
-                sheet = wb.active  # 첫번째 sheet
-
-                max_col = sheet.max_column
-                add_columns = df.columns
-                redacted_columns = [col for col in add_columns if "red" in col.lower()]
-                emoji_columns = [col for col in add_columns if "emoji" in col.lower()]
-                chars_columns = [col for col in add_columns if "chars" in col.lower()]
-                emcha_columns = [col for col in add_columns if "emcha" in col.lower()]
-
-                thin_border = Border(
-                    left=Side(style="thin"),
-                    right=Side(style="thin"),
-                    top=Side(style="thin"),
-                    bottom=Side(style="thin"),
+                file_name, df = self.process_data(
+                    uploaded_file, src_lang, tgt_lang, environment
                 )
-                # Create an Alignment object with horizontal and vertical alignment set to 'center'
-                alignment = Alignment(horizontal="center", vertical="center")
 
-                if environment == "EXCEL":
-                    for i in range(len(add_columns)):
-                        # make column
-                        add_start = get_column_letter(
-                            max_col + i + 1
-                        )  # A-Z,AA,AB...AZ.BA..
-                        sheet.merge_cells(f"{add_start}1:{add_start}3")  # merge row 1-3
-                        sheet[f"{add_start}1"].alignment = alignment
-                        sheet[f"{add_start}1"].border = thin_border
-                        sheet[f"{add_start}1"] = add_columns[i]
-                        sheet.column_dimensions[f"{add_start}"].width = 20
-                        for idx, value in enumerate(df[add_columns[i]], start=4):
-                            if add_columns[i] == "Duplicated":
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="FFC0CB",
-                                    end_color="FFC0CB",
-                                    fill_type="solid",
-                                )  # pink
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="FFC0CB",
-                                    end_color="FFC0CB",
-                                    fill_type="solid",
-                                )  # pink
-                            elif add_columns[i] in redacted_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="FFFF00",
-                                    end_color="FFFF00",
-                                    fill_type="solid",
-                                )  # yellow fil
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="FFFF00",
-                                    end_color="FFFF00",
-                                    fill_type="solid",
-                                )  # yellow fill
-                            elif add_columns[i] in emoji_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="90EE90",
-                                    end_color="90EE90",
-                                    fill_type="solid",
-                                )  # light green fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="90EE90",
-                                    end_color="90EE90",
-                                    fill_type="solid",
-                                )  # light green fill
-                            elif add_columns[i] in chars_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="ADD8E6",
-                                    end_color="ADD8E6",
-                                    fill_type="solid",
-                                )  # light blue fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="ADD8E6",
-                                    end_color="ADD8E6",
-                                    fill_type="solid",
-                                )  # light blue fill
-                            elif add_columns[i] in emcha_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="00FFFF",
-                                    end_color="00FFFF",
-                                    fill_type="solid",
-                                )  # cyan fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="00FFFF",
-                                    end_color="00FFFF",
-                                    fill_type="solid",
-                                )  # cyan fill
-                            sheet[f"{add_start}{idx}"] = str(value)
-                            sheet[f"{add_start}{idx}"].border = thin_border
+                excel_buffer = BytesIO()
+                # DataFrame을 Excel 파일로 변환하여 BytesIO에 쓰기
+                og_file = BytesIO(uploaded_file.getvalue())
+                wb = load_workbook(og_file)
+                sheet = wb.active
 
-                elif environment == "NAC":
-                    for i in range(len(add_columns)):
-                        # make column
-                        add_start = get_column_letter(
-                            max_col + i + 1
-                        )  # A-Z,AA,AB...AZ.BA..
-
-                        sheet[f"{add_start}1"].alignment = alignment
-                        sheet[f"{add_start}1"].border = thin_border
-                        sheet[f"{add_start}1"] = add_columns[i]
-                        sheet.column_dimensions[f"{add_start}"].width = 20
-                        for idx, value in enumerate(df[add_columns[i]], start=2):
-                            if add_columns[i] == "Duplicated":
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="FFC0CB",
-                                    end_color="FFC0CB",
-                                    fill_type="solid",
-                                )  # pink
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="FFC0CB",
-                                    end_color="FFC0CB",
-                                    fill_type="solid",
-                                )  # pink
-                            elif add_columns[i] in redacted_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="FFFF00",
-                                    end_color="FFFF00",
-                                    fill_type="solid",
-                                )  # yellow fil
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="FFFF00",
-                                    end_color="FFFF00",
-                                    fill_type="solid",
-                                )  # yellow fill
-                            elif add_columns[i] in emoji_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="90EE90",
-                                    end_color="90EE90",
-                                    fill_type="solid",
-                                )  # light green fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="90EE90",
-                                    end_color="90EE90",
-                                    fill_type="solid",
-                                )  # light green fill
-                            elif add_columns[i] in chars_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="ADD8E6",
-                                    end_color="ADD8E6",
-                                    fill_type="solid",
-                                )  # light blue fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="ADD8E6",
-                                    end_color="ADD8E6",
-                                    fill_type="solid",
-                                )  # light blue fill
-                            elif add_columns[i] in emcha_columns:
-                                sheet[f"{add_start}1"].fill = PatternFill(
-                                    start_color="00FFFF",
-                                    end_color="00FFFF",
-                                    fill_type="solid",
-                                )  # cyan fill
-                                sheet[f"{add_start}{idx}"].fill = PatternFill(
-                                    start_color="00FFFF",
-                                    end_color="00FFFF",
-                                    fill_type="solid",
-                                )  # cyan fill
-
-                            sheet[f"{add_start}{idx}"] = str(
-                                value
-                            )  # datatype상관없이 그냥 string으로
-                            sheet[f"{add_start}{idx}"].border = thin_border
+                # 데이터 처리
+                self.write_data_to_sheet(sheet, df, environment)
 
                 # BytesIO 객체에 엑셀 데이터를 쓰기
                 wb.save(excel_buffer)
@@ -344,15 +170,26 @@ class ProcessorMenu(Widget):
 
         return zip_buffer
 
-    def process_excel_data(self, f, src_lang, tgt_lang):
+    def process_data(self, f, src_lang, tgt_lang, environment):
         # 파일명 설정
         file_name = f.name
+
         # DataFrame으로 변환
         df = pd.read_excel(f, engine="openpyxl")
+
+        if environment == "EXCEL":
+            df = self.process_excel_data(df, src_lang, tgt_lang)
+        elif environment == "NAC":
+            df = self.process_nac_data(df, src_lang, tgt_lang)
+
+        return file_name, df
+
+    def process_excel_data(self, df, src_lang, tgt_lang):
+
         only_data = df.iloc[2:,]
         only_data["Duplicated"] = only_data["f_id"].duplicated(
             keep=False
-        )  # check if origin has same content -> excel에서는 origin으로 정렬
+        )  
         only_data = excel_red_error.check_redacted(only_data)
         only_data = excel_emoji_error.get_emojis(only_data)
         only_data = excel_chars_error.get_chars_error(only_data)
@@ -361,18 +198,13 @@ class ProcessorMenu(Widget):
         added_col_loc = only_data.columns.get_loc("Duplicated")
         added_df = only_data.iloc[:, added_col_loc:]
 
-        return file_name, added_df
+        return added_df
 
-    def process_nac_data(self, f, src_lang, tgt_lang):
+    def process_nac_data(self, df, src_lang, tgt_lang):
 
-        # 파일명 설정
-        file_name = f.name
-
-        # DataFrame으로 변환
-        df = pd.read_excel(f, engine="openpyxl")
         df["Duplicated"] = df["SID"].duplicated(
             keep=False
-        )  # check if origin has same content -> excel에서는 origin으로 정렬
+        )  
         df = nac_red_error.check_redacted(df)
         df = nac_emoji_error.get_emojis(df)
         df = nac_chars_error.get_chars_error(df)
@@ -381,7 +213,65 @@ class ProcessorMenu(Widget):
         added_col_loc = df.columns.get_loc("Duplicated")
         added_df = df.iloc[:, added_col_loc:]
 
-        return file_name, added_df
+        return added_df
+
+    # add "inspected columns" to right of the original file with styles
+    def write_data_to_sheet(self, sheet, df, environment):
+        thin_border = Border(
+            left=Side(style="thin"),
+            right=Side(style="thin"),
+            top=Side(style="thin"),
+            bottom=Side(style="thin"),
+        )
+        alignment = Alignment(horizontal="center", vertical="center")
+
+        start_idx = (
+            4 if environment == "EXCEL" else 2
+        )  # excel은 세번째 row까지 merge되어있기 때문
+
+        max_col = sheet.max_column
+        for i in range(len(df.columns)):
+            cur_col = df.columns[i]
+            add_start_letter = get_column_letter(max_col + i + 1)
+            if environment == "EXCEL":
+                sheet.merge_cells(f"{add_start_letter}1:{add_start_letter}3")
+
+            sheet[f"{add_start_letter}1"].alignment = alignment
+            sheet[f"{add_start_letter}1"].border = thin_border
+            sheet[f"{add_start_letter}1"] = cur_col
+            sheet.column_dimensions[f"{add_start_letter}"].width = 20
+
+            for idx, value in enumerate(df[cur_col], start=start_idx):
+                #print("value ",value,type(value))
+                if isinstance(value,(list,str,bool)):
+                    fill_color = self.get_fill_color(cur_col)
+                    sheet[f"{add_start_letter}1"].fill = PatternFill(
+                        start_color=fill_color, end_color=fill_color, fill_type="solid"
+                    )  # header
+                    sheet[f"{add_start_letter}{idx}"].fill = PatternFill(
+                        start_color=fill_color, end_color=fill_color, fill_type="solid"
+                    )
+                    sheet[f"{add_start_letter}{idx}"] = str(value)
+                    sheet[f"{add_start_letter}{idx}"].border = thin_border
+                
+                else:
+                    sheet[f"{add_start_letter}{idx}"] = value
+                    sheet[f"{add_start_letter}{idx}"].border = thin_border
+                    pass
+                
+
+    # Apply different color to each error type
+    def get_fill_color(self, col):
+        if "Duplicated" in col:
+            return "FFC0CB"  # pink
+        elif "red" in col.lower():
+            return "FFFF00"  # yellow
+        elif "emoji" in col.lower():
+            return "90EE90"  # light green
+        elif "chars" in col.lower():
+            return "ADD8E6"  # light blue
+        elif "emcha" in col.lower():
+            return "00FFFF"  # cyan
 
 
 if __name__ == "__main__":

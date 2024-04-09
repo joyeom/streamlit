@@ -30,13 +30,13 @@ def extract_redacted(text):
     if pd.notna(text):
         return ", ".join(re.findall(red_pattern, str(text), re.IGNORECASE))
     else:
-        return np.nan
+        return np.nan # case where t2 doesn't exist
 
 
 def calculate_red_error(og, t):
     red_error_t = []
     for r_og, r_t in zip(og, t):
-        if pd.isna(r_t):
+        if pd.isna(r_t): #t2 doesn't exist
             red_error_t.append(False)
         else:
             red_error_t.append(r_og != r_t)

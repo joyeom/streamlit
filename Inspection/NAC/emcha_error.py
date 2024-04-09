@@ -112,23 +112,27 @@ def is_punctuation(text):
 def find_common_words(og, trans):
     emcha = []
     for og, tran in zip(og, trans):
-        common_words = list(set(og).intersection(set(tran)))  # Get common words
-        if common_words:  # Check if there are common words
-            common_words = [
-                t
-                for t in common_words
-                if not (
-                    is_number(t)
-                    or is_website_link(t)
-                    or is_metric(t)
-                    or is_punctuation(t)
-                    or len(t) <= 1
-                )
-            ]
-
-            # Check if the word becomes empty after removing unwanted characters
-        if len(common_words) == 0:
+        if isinstance(tran, list) and tran[0] == "nan": #if t2 is empty it is class list and ["nan"]
             common_words = np.nan
+        else:  
+            common_words = list(set(og).intersection(set(tran)))  # Get common words
+            if common_words:
+                common_words = [
+                    t
+                    for t in common_words
+                    if not (
+                        is_number(t)
+                        or is_website_link(t)
+                        or is_metric(t)
+                        or is_punctuation(t)
+                        or len(t) <= 1
+                    )
+                ]
+
+                # Check if the word becomes empty after removing unwanted characters
+                
+            if len(common_words) == 0:
+                common_words = ''
 
         emcha.append(common_words)
 
