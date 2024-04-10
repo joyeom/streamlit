@@ -120,6 +120,20 @@ class Main(Widget):
 class ProcessorMenu(Widget):
     def __init__(self, main_instance, root=None):
         self.state = main_instance.get_state()
+
+        # style
+        self.style = {
+            "thin_border": Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin"),
+            ),
+            "alignment": Alignment(horizontal="center", vertical="center"),
+            "start_idx": (
+                4 if self.state["environment"] == "EXCEL" else 2
+            ),  # excel은 세번째 row까지 merge되어있기 때문
+        }
         super().__init__(root)
 
     def initUI(self):
@@ -147,7 +161,7 @@ class ProcessorMenu(Widget):
         # Zip 파일 생성
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zf:
             for uploaded_file in uploaded_files:
-                file_name, df = self.process_data(
+                file_name, error_inspected_df = self.process_data(
                     uploaded_file, src_lang, tgt_lang, environment
                 )
 
@@ -158,7 +172,7 @@ class ProcessorMenu(Widget):
                 sheet = wb.active
 
                 # 데이터 처리
-                self.write_data_to_sheet(sheet, df, environment)
+                self.write_styled_data_to_sheet(sheet, error_inspected_df, environment)
 
                 # BytesIO 객체에 엑셀 데이터를 쓰기
                 wb.save(excel_buffer)
@@ -201,10 +215,10 @@ class ProcessorMenu(Widget):
         only_data = excel_chars_error.get_chars_error(only_data, has_t2)
         only_data = excel_emcha_error.get_emcha(only_data, has_t2, src_lang, tgt_lang)
 
-        added_col_loc = only_data.columns.get_loc("Duplicated")
-        added_df = only_data.iloc[:, added_col_loc:]
+        error_checked_loc = only_data.columns.get_loc("Duplicated")
+        error_checked_df = only_data.iloc[:, error_checked_loc:]
 
-        return added_df
+        return error_checked_df
 
     def process_nac_data(self, df, src_lang, tgt_lang):
 
@@ -214,54 +228,62 @@ class ProcessorMenu(Widget):
         df = nac_chars_error.get_chars_error(df)
         df = nac_emcha_error.get_emcha(df, src_lang, tgt_lang)
 
-        added_col_loc = df.columns.get_loc("Duplicated")
-        added_df = df.iloc[:, added_col_loc:]
+        error_checked_loc = df.columns.get_loc("Duplicated")
+        error_checked_df = df.iloc[:, error_checked_loc:]
 
-        return added_df
+        return error_checked_df
 
     # add "inspected columns" to right of the original file with styles
-    def write_data_to_sheet(self, sheet, df, environment):
-        thin_border = Border(
-            left=Side(style="thin"),
-            right=Side(style="thin"),
-            top=Side(style="thin"),
-            bottom=Side(style="thin"),
-        )
-        alignment = Alignment(horizontal="center", vertical="center")
-
-        start_idx = (
-            4 if environment == "EXCEL" else 2
-        )  # excel은 세번째 row까지 merge되어있기 때문
+    def write_styled_data_to_sheet(self, sheet, df, environment):
 
         max_col = sheet.max_column
-        for i in range(len(df.columns)):
-            cur_col = df.columns[i]
-            add_start_letter = get_column_letter(max_col + i + 1)
-            if environment == "EXCEL":
-                sheet.merge_cells(f"{add_start_letter}1:{add_start_letter}3")
 
-            sheet[f"{add_start_letter}1"].alignment = alignment
-            sheet[f"{add_start_letter}1"].border = thin_border
-            sheet[f"{add_start_letter}1"] = cur_col
-            sheet.column_dimensions[f"{add_start_letter}"].width = 20
+        # print(f"self.style in write_styled_data_to_sheet {self.style}")
 
-            for idx, value in enumerate(df[cur_col], start=start_idx):
-                # print("value ",value,type(value))
-                if isinstance(value, (list, str, bool)):
-                    fill_color = self.get_fill_color(cur_col)
-                    sheet[f"{add_start_letter}1"].fill = PatternFill(
-                        start_color=fill_color, end_color=fill_color, fill_type="solid"
-                    )  # header
-                    sheet[f"{add_start_letter}{idx}"].fill = PatternFill(
-                        start_color=fill_color, end_color=fill_color, fill_type="solid"
-                    )
-                    sheet[f"{add_start_letter}{idx}"] = str(value)
-                    sheet[f"{add_start_letter}{idx}"].border = thin_border
+        for idx, cur_col in enumerate(df.columns):
+            cur_letter = get_column_letter(max_col + idx + 1)
 
-                else:
-                    sheet[f"{add_start_letter}{idx}"] = value
-                    sheet[f"{add_start_letter}{idx}"].border = thin_border
-                    pass
+            self.style_header_data(sheet, self.style, cur_letter, cur_col)
+            self.style_non_header_data(
+                df[cur_col], sheet, self.style, cur_letter, cur_col
+            )
+
+    def style_header_data(self, sheet, style, col_letter, col):
+        if self.state["environment"] == "EXCEL":  # if environment is EXCEL
+            # merge header
+            sheet.merge_cells(f"{col_letter}1:{col_letter}3")
+
+            # create border for merged cell
+            for idx in range(1, 4):
+                sheet[f"{col_letter}{idx}"].border = style["thin_border"]
+        else:
+            sheet[f"{col_letter}1"].border = style["thin_border"]
+
+        # Apply style to the header
+        sheet[f"{col_letter}1"].alignment = style["alignment"]
+        sheet[f"{col_letter}1"] = col
+        sheet.column_dimensions[f"{col_letter}"].width = 20
+
+        fill_color = self.get_fill_color(col)
+        sheet[f"{col_letter}1"].fill = PatternFill(
+            start_color=fill_color, end_color=fill_color, fill_type="solid"
+        )  # header
+
+    def style_non_header_data(self, data, sheet, style, col_letter, col):
+        for idx, value in enumerate(data, start=style["start_idx"]):
+            # print("value ",value,type(value))
+            if isinstance(value, (list, str, bool)):
+                fill_color = self.get_fill_color(col)
+                sheet[f"{col_letter}{idx}"].fill = PatternFill(
+                    start_color=fill_color, end_color=fill_color, fill_type="solid"
+                )
+                sheet[f"{col_letter}{idx}"] = str(value)
+                sheet[f"{col_letter}{idx}"].border = style["thin_border"]
+
+            else:
+                sheet[f"{col_letter}{idx}"] = value
+                sheet[f"{col_letter}{idx}"].border = style["thin_border"]
+                pass
 
     # Apply different color to each error type
     def get_fill_color(self, col):
