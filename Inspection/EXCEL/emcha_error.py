@@ -4,17 +4,6 @@ import numpy as np
 from Inspection.EXCEL.red_error import red_pattern
 from Inspection.EXCEL.emoji_error import emoji_pattern
 
-
-def remove_re(text):
-    rep = f"({red_pattern})|({emoji_pattern})"
-    removed = text.apply(lambda t: re.sub(rep, "", str(t), flags=re.IGNORECASE))
-    return removed
-
-
-# 음차번역
-# origin과 translation1 에서 같은 단어를 찾는거야 그게 음차번역이 필요한 거겠지
-# this is only done with translation1
-
 # english, portuguese tokenizer
 import nltk
 
@@ -29,6 +18,13 @@ import jieba
 
 # japanese tokenize
 from pyknp import Juman
+
+
+# remove red_pattern and emoji_pattern
+def remove_re(text):
+    rep = f"({red_pattern})|({emoji_pattern})"
+    removed = text.apply(lambda t: re.sub(rep, "", str(t), flags=re.IGNORECASE))
+    return removed
 
 
 def contains_t2(df):
@@ -117,24 +113,29 @@ def is_nan(text):
 def find_common_words(og, trans):
     emcha = []
     for og, tran in zip(og, trans):
-        common_words = list(set(og).intersection(set(tran)))  # Get common words
-        if common_words:  # Check if there are common words
-            common_words = [
-                t
-                for t in common_words
-                if not (
-                    is_nan(t)
-                    or is_number(t)
-                    or is_website_link(t)
-                    or is_metric(t)
-                    or is_punctuation(t)
-                    or len(t) <= 1
-                )
-            ]
-
-            # Check if the word becomes empty after removing unwanted characters
-        if len(common_words) == 0:
+        if (
+            isinstance(tran, list) and tran[0] == "nan"
+        ):  # if t2 is empty it is class list and ["nan"]
             common_words = np.nan
+        else:
+            common_words = list(set(og).intersection(set(tran)))  # Get common words
+            if common_words:
+                common_words = [
+                    t
+                    for t in common_words
+                    if not (
+                        is_number(t)
+                        or is_website_link(t)
+                        or is_metric(t)
+                        or is_punctuation(t)
+                        or len(t) <= 1
+                    )
+                ]
+
+                # Check if the word becomes empty after removing unwanted characters
+
+            if len(common_words) == 0:
+                common_words = ""
 
         emcha.append(common_words)
 
@@ -147,16 +148,10 @@ def get_emcha(df, has_t2, src, tg):  # src = source language, tg = target langua
     tokenized_og = tokenize(removed_og, src)
     tokenized_t1 = tokenize(removed_t1, tg)
     df["emcha_t1"] = find_common_words(tokenized_og, tokenized_t1)
-    df["emcha_t1"] = df["emcha_t1"].apply(
-        lambda x: ", ".join(x) if isinstance(x, list) else np.nan
-    )
 
     if has_t2:
         removed_t2 = remove_re(df.iloc[:, 4])
         tokenized_t2 = tokenize(removed_t2, tg)
         df["emcha_t2"] = find_common_words(tokenized_og, tokenized_t2)
-        df["emcha_t2"] = df["emcha_t2"].apply(
-            lambda x: ", ".join(x) if isinstance(x, list) else np.nan
-        )
 
     return df
