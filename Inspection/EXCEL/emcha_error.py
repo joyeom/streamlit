@@ -141,7 +141,7 @@ def find_common_words(og, trans):
     return emcha
 
 
-def get_emcha(df, src, tg):  # src = source language, tg = target language
+def get_emcha(df, has_t2, src, tg):  # src = source language, tg = target language
     removed_og = remove_re(df.iloc[:, 2])
     removed_t1 = remove_re(df.iloc[:, 3])
     tokenized_og = tokenize(removed_og, src)
@@ -151,7 +151,7 @@ def get_emcha(df, src, tg):  # src = source language, tg = target language
         lambda x: ", ".join(x) if isinstance(x, list) else np.nan
     )
 
-    if contains_t2(df):
+    if has_t2:
         removed_t2 = remove_re(df.iloc[:, 4])
         tokenized_t2 = tokenize(removed_t2, tg)
         df["emcha_t2"] = find_common_words(tokenized_og, tokenized_t2)

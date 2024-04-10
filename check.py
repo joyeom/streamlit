@@ -186,14 +186,20 @@ class ProcessorMenu(Widget):
 
     def process_excel_data(self, df, src_lang, tgt_lang):
 
-        only_data = df.iloc[2:,]
-        only_data["Duplicated"] = only_data["f_id"].duplicated(
-            keep=False
-        )  
-        only_data = excel_red_error.check_redacted(only_data)
-        only_data = excel_emoji_error.get_emojis(only_data)
-        only_data = excel_chars_error.get_chars_error(only_data)
-        only_data = excel_emcha_error.get_emcha(only_data, src_lang, tgt_lang)
+        def contains_t2(df):
+            if df.iloc[0].str.contains("target").sum() == 2:
+                return True
+
+            return False
+
+        only_data = df.iloc[2:,]  # because headers(row 1-3) are merged
+        has_t2 = contains_t2(df)
+
+        only_data["Duplicated"] = only_data["f_id"].duplicated(keep=False)
+        only_data = excel_red_error.check_redacted(only_data, has_t2)
+        only_data = excel_emoji_error.get_emojis(only_data, has_t2)
+        only_data = excel_chars_error.get_chars_error(only_data, has_t2)
+        only_data = excel_emcha_error.get_emcha(only_data, has_t2, src_lang, tgt_lang)
 
         added_col_loc = only_data.columns.get_loc("Duplicated")
         added_df = only_data.iloc[:, added_col_loc:]
@@ -202,9 +208,7 @@ class ProcessorMenu(Widget):
 
     def process_nac_data(self, df, src_lang, tgt_lang):
 
-        df["Duplicated"] = df["SID"].duplicated(
-            keep=False
-        )  
+        df["Duplicated"] = df["SID"].duplicated(keep=False)
         df = nac_red_error.check_redacted(df)
         df = nac_emoji_error.get_emojis(df)
         df = nac_chars_error.get_chars_error(df)
@@ -242,8 +246,8 @@ class ProcessorMenu(Widget):
             sheet.column_dimensions[f"{add_start_letter}"].width = 20
 
             for idx, value in enumerate(df[cur_col], start=start_idx):
-                #print("value ",value,type(value))
-                if isinstance(value,(list,str,bool)):
+                # print("value ",value,type(value))
+                if isinstance(value, (list, str, bool)):
                     fill_color = self.get_fill_color(cur_col)
                     sheet[f"{add_start_letter}1"].fill = PatternFill(
                         start_color=fill_color, end_color=fill_color, fill_type="solid"
@@ -253,12 +257,11 @@ class ProcessorMenu(Widget):
                     )
                     sheet[f"{add_start_letter}{idx}"] = str(value)
                     sheet[f"{add_start_letter}{idx}"].border = thin_border
-                
+
                 else:
                     sheet[f"{add_start_letter}{idx}"] = value
                     sheet[f"{add_start_letter}{idx}"].border = thin_border
                     pass
-                
 
     # Apply different color to each error type
     def get_fill_color(self, col):

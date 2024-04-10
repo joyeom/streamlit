@@ -6,12 +6,6 @@ from Inspection.EXCEL.emcha_error import emoji_pattern
 ##check exact
 
 
-def contains_t2(df):
-    if df.iloc[0].str.contains("target").sum() == 2:
-        return True
-    return False
-
-
 def remove_pes(source):
     punct = r"[\u2000-\u206F\u2E00-\u2E7F\\!\"#$%&()*+,\-./:;<=>?@[\\\]^_`{|}~]"
     emoji = emoji_pattern
@@ -45,12 +39,12 @@ def calculate_chars_error(og, t):
     return chars_error
 
 
-def get_chars_error(df):
+def get_chars_error(df, has_t2):
     chars_og = df.iloc[:, 2].apply(remove_pes)
     chars_t1 = df.iloc[:, 3].apply(remove_pes)
     df["chars_error_t1"] = calculate_chars_error(chars_og, chars_t1)
 
-    if contains_t2(df):
+    if has_t2:
         chars_t2 = df.iloc[:, 4].apply(remove_pes)
         df["chars_error_t2"] = calculate_chars_error(chars_t1, chars_t2)
 
