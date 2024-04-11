@@ -31,76 +31,21 @@ from openpyxl.styles import Alignment
 
 st.set_page_config(page_title="Inspection", page_icon="./Inspection/Flitto_symbol.jpg")
 st.title("내부검수")
-# Add custom CSS to hide the GitHub icon
-# st.markdown(
-#     """
-#     <style>
-#     .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-#     .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-#     .viewerBadge_text__1JaDK {
-#         display: none;
-#     }
-#     </style>
-#     """,
-#     unsafe_allow_html=True
-# )
 
-hide_streamlit_toolbar = """
+hide_streamlit_style = """
 <style>
 [data-testid="stToolbar"] {visibility: hidden !important;}
 footer {visibility: hidden !important;}
 </style>
 """
-hide_streamlit_footer= """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <style>
-        body {
-          margin: 0;
-        }
-
-        .wrapper {
-          position: relative;
-          z-index: 1;
-          display: inline-block;
-          width: 100vw;
-        }
-
-        .hidefooter {
-          position: absolute;
-          width: 150px;
-          height: 35px;
-          background: rgb(242,240,246);
-          right: 0px;
-          bottom: 0px;
-          z-index: 2;
-          display: block;
-          color: rgb(0, 0, 0);
-        }
-    
-        iframe {
-          display: block;
-          background: #ffffff;
-          border: none;
-          height: 99vh;
-          width: 99vw;
-        }
-        </style>    
-
-</head>
-<body>
-  <div class="wrapper">
-    <div class="hidefooter"></div>
-    <iframe src="https://app-8mbgyndkjtrz2eeqpicvgj.streamlit.app/" frameborder="0">
-        <p>Your browser doesn't support iframes</p>
-    </iframe>
-    </div>
-</body>
-</html>
+hide_viewer_badge_style = """
+<style>
+.viewerBadge_container__r5tak {
+    display: none !important;
+}
+</style>
 """
-
-st.markdown(hide_streamlit_toolbar + hide_streamlit_footer, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style + hide_viewer_badge_style, unsafe_allow_html=True)
 
 
 # Base Module
