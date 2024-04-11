@@ -1,4 +1,4 @@
-# source = https://raw.githubusercontent.com/omnidan/node-emoji/master/lib/emoji.json
+# source = https://streamlit-emoji-shortcodes-streamlit-app-gwckff.streamlit.app/
 import streamlit as st
 import requests
 import pandas as pd
