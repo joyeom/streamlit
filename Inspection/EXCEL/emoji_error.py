@@ -1,9 +1,13 @@
 import pandas as pd
 import re
 import numpy as np
+from Inspection.emoji import emojis
 
 # check emoji
-emoji_pattern = r'[\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\u2600-\u26FF\u2700-\u27BF\◦●•■]|"""|^- |^–'  # 맨앞에 있는 -, """ 있는 것들은 특수문자 처리
+emoji_pattern = (
+    emojis
+    + r'|[\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\u2600-\u26FF\u2700-\u27BF\◦●•■]|"""|^- |^–'
+)
 
 
 def extract_emojis(text):
@@ -23,7 +27,7 @@ def calculate_emoji_error(og, t):
     return emoji_error_t
 
 
-def get_emojis(df,has_t2):
+def get_emojis(df, has_t2):
     df["emoji_og"] = df.iloc[:, 2].apply(extract_emojis)
     df["emoji_t1"] = df.iloc[:, 3].apply(extract_emojis)
     df["emoji_error_t1"] = calculate_emoji_error(df["emoji_og"], df["emoji_t1"])
