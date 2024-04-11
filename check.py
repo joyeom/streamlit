@@ -46,12 +46,20 @@ st.title("내부검수")
 # )
 
 hide_streamlit_style = """
-            <style>
-            [data-testid="stToolbar"] {visibility: hidden !important;}
-            footer {visibility: hidden !important;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+<style>
+[data-testid="stToolbar"] {visibility: hidden !important;}
+footer {visibility: hidden !important;}
+</style>
+"""
+hide_viewer_badge_style = """
+<style>
+.viewerBadge_container__r5tak {
+    display: none !important;
+}
+</style>
+"""
+st.markdown(hide_streamlit_style + hide_viewer_badge_style, unsafe_allow_html=True)
+
 
 # Base Module
 class Widget:
