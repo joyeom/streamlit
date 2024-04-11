@@ -24,28 +24,17 @@ import pandas as pd
 from io import BytesIO
 import zipfile
 
-from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import Alignment
-
 st.set_page_config(page_title="Inspection", page_icon="./Inspection/Flitto_symbol.jpg")
 st.title("내부검수")
 
+# hide streamlit toolbar on top
 hide_streamlit_style = """
 <style>
 [data-testid="stToolbar"] {visibility: hidden !important;}
 footer {visibility: hidden !important;}
 </style>
 """
-hide_viewer_badge_style = """
-<style>
-.viewerBadge_container__r5tak {
-    display: none !important;
-}
-</style>
-"""
-st.markdown(hide_streamlit_style + hide_viewer_badge_style, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
 # Base Module
