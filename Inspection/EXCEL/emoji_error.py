@@ -33,12 +33,15 @@ def calculate_emoji_error(og, t):
 
 
 def get_emojis(df, has_t2):
-    df["emoji_og"] = df.iloc[:, 2].apply(extract_emojis)
-    df["emoji_t1"] = df.iloc[:, 3].apply(extract_emojis)
+    origin = df.iloc[:,2]
+    t1 = df.iloc[:, 3]
+    df["emoji_og"] = origin.apply(extract_emojis)
+    df["emoji_t1"] = t1.apply(extract_emojis)
     df["emoji_error_t1"] = calculate_emoji_error(df["emoji_og"], df["emoji_t1"])
 
     if has_t2:
-        df["emoji_t2"] = df.iloc[:, 4].apply(extract_emojis)
+        t2 = df.iloc[:, 4]
+        df["emoji_t2"] = t2.apply(extract_emojis)
         df["emoji_error_t2"] = calculate_emoji_error(df["emoji_og"], df["emoji_t2"])
 
     return df

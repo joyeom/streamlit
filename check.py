@@ -8,13 +8,14 @@ from Inspection.NAC import chars_error as nac_chars_error
 from Inspection.NAC import emcha_error as nac_emcha_error
 from Inspection.NAC import red_error as nac_red_error
 from Inspection.NAC import emoji_error as nac_emoji_error
+from Inspection.NAC import end_punct_error as nac_end_punct_error
 
 # EXCEL
 from Inspection.EXCEL import chars_error as excel_chars_error
 from Inspection.EXCEL import emcha_error as excel_emcha_error
 from Inspection.EXCEL import red_error as excel_red_error
 from Inspection.EXCEL import emoji_error as excel_emoji_error
-
+from Inspection.EXCEL import end_punct_error as excel_end_punct_error
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
@@ -218,6 +219,9 @@ class ProcessorMenu(Widget):
         only_data = excel_emoji_error.get_emojis(only_data, has_t2)
         only_data = excel_chars_error.get_chars_error(only_data, has_t2)
         only_data = excel_emcha_error.get_emcha(only_data, has_t2, src_lang, tgt_lang)
+        only_data = excel_end_punct_error.get_end_punct_error(
+            only_data, has_t2, src_lang, tgt_lang
+        )
 
         error_checked_loc = only_data.columns.get_loc("Duplicated")
         error_checked_df = only_data.iloc[:, error_checked_loc:]
@@ -231,6 +235,7 @@ class ProcessorMenu(Widget):
         df = nac_emoji_error.get_emojis(df)
         df = nac_chars_error.get_chars_error(df)
         df = nac_emcha_error.get_emcha(df, src_lang, tgt_lang)
+        df = nac_end_punct_error.get_end_punct_error(df, src_lang, tgt_lang)
 
         error_checked_loc = df.columns.get_loc("Duplicated")
         error_checked_df = df.iloc[:, error_checked_loc:]
@@ -301,6 +306,8 @@ class ProcessorMenu(Widget):
             return "ADD8E6"  # light blue
         elif "emcha" in col.lower():
             return "00FFFF"  # cyan
+        elif "punct" in col.lower():
+            return "D8BFD8"  # thistle
 
 
 if __name__ == "__main__":

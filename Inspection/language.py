@@ -71,3 +71,12 @@ bb_language = [
     "zh_CN",
     "zh_TW",
 ]
+
+non_latin = [
+    "ar_AE",  # Arabic
+    "ja_JP",  # Japanese
+    "ko_KR",  # Korean
+    "th_TH",  # Thai
+    "zh_CN",  # Chinese (Simplified)
+    "zh_TW",  # Chinese (Traditional)
+]
