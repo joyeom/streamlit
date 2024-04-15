@@ -1,4 +1,4 @@
-non_latin_punctuation_dict = {
+non_latin_punctuation_dict = {  # latin punct : non_latin_punct
     "ar_AE": {
         "۔": ".",  # Arabic Full Stop
         "،": ",",  # Arabic Comma
@@ -7,7 +7,7 @@ non_latin_punctuation_dict = {
         "!": "!",  # Arabic Exclamation mark
         "؟": "?",  # Arabic Question mark
         "'": "'",  # Arabic Apostrophe
-        "\"": "\"",  # Arabic Quotation mark
+        '"': '"',  # Arabic Quotation mark
         "-": "-",  # Arabic Hyphen
         "(": "(",  # Arabic Left parenthesis
         ")": ")",  # Arabic Right parenthesis
@@ -39,7 +39,7 @@ non_latin_punctuation_dict = {
         "！": "!",  # Japanese Exclamation mark
         "？": "?",  # Japanese Question mark
         "'": "'",  # Japanese Apostrophe
-        "\"": "\"",  # Japanese Quotation mark
+        '"': '"',  # Japanese Quotation mark
         "-": "-",  # Japanese Hyphen
         "（": "(",  # Japanese Left parenthesis
         "）": ")",  # Japanese Right parenthesis
@@ -71,7 +71,9 @@ non_latin_punctuation_dict = {
         "!": "!",  # Korean Exclamation mark
         "?": "?",  # Korean Question mark
         "'": "'",  # Korean Apostrophe
-        "\"": "\"",  # Korean Quotation mark
+        '"': '"',  # Korean Quotation mark
+        "“": '"',  # Korean Quotation mark (left)
+        "”": '"',  # Korean Quotation mark (right)
         "-": "-",  # Korean Hyphen
         "(": "(",  # Korean Left parenthesis
         ")": ")",  # Korean Right parenthesis
@@ -103,7 +105,7 @@ non_latin_punctuation_dict = {
         "!": "!",  # Thai Exclamation mark
         "?": "?",  # Thai Question mark
         "'": "'",  # Thai Apostrophe
-        "\"": "\"",  # Thai Quotation mark
+        '"': '"',  # Thai Quotation mark
         "-": "-",  # Thai Hyphen
         "(": "(",  # Thai Left parenthesis
         ")": ")",  # Thai Right parenthesis
@@ -131,11 +133,13 @@ non_latin_punctuation_dict = {
         "。": ".",  # Chinese (Simplified) Period
         "，": ",",  # Chinese (Simplified) Comma
         "；": ";",  # Chinese (Simplified) Semicolon
-        ":": ":",  # Chinese (Simplified) Colon
+        "：": ":",  # Chinese (Simplified) Colon
         "！": "!",  # Chinese (Simplified) Exclamation mark
         "？": "?",  # Chinese (Simplified) Question mark
-        "‘’": "'",  # Chinese (Simplified) Apostrophe
-        "“”": "\"",  # Chinese (Simplified) Quotation mark
+        "‘": "'",  # Chinese (Simplified) Apostrophe (left)
+        "’": "'",  # Chinese (Simplified) Apostrophe (right)
+        "“": '"',  # Chinese (Simplified) Quotation mark (left)
+        "”": '"',  # Chinese (Simplified) Quotation mark (right)
         "－": "-",  # Chinese (Simplified) Hyphen
         "（": "(",  # Chinese (Simplified) Left parenthesis
         "）": ")",  # Chinese (Simplified) Right parenthesis
@@ -163,11 +167,13 @@ non_latin_punctuation_dict = {
         "。": ".",  # Chinese (Traditional) Period
         "，": ",",  # Chinese (Traditional) Comma
         "；": ";",  # Chinese (Traditional) Semicolon
-        ":": ":",  # Chinese (Traditional) Colon
+        "：": ":",  # Chinese (Traditional) Colon
         "！": "!",  # Chinese (Traditional) Exclamation mark
         "？": "?",  # Chinese (Traditional) Question mark
-        "‘’": "'",  # Chinese (Traditional) Apostrophe
-        "“”": "\"",  # Chinese (Traditional) Quotation mark
+        "‘": "'",  # Chinese (Traditional) Apostrophe (left)
+        "’": "'",  # Chinese (Traditional) Apostrophe (right)
+        "“": '"',  # Chinese (Traditional) Quotation mark (left)
+        "”": '"',  # Chinese (Traditional) Quotation mark (left)
         "－": "-",  # Chinese (Traditional) Hyphen
         "（": "(",  # Chinese (Traditional) Left parenthesis
         "）": ")",  # Chinese (Traditional) Right parenthesis
@@ -190,5 +196,5 @@ non_latin_punctuation_dict = {
         "＿": "_",  # Chinese (Traditional) Underscore
         "＋": "+",  # Chinese (Traditional) Plus sign
         "＝": "=",  # Chinese (Traditional) Equal sign
-    }
+    },
 }
