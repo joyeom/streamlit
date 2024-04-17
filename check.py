@@ -67,7 +67,7 @@ class Main(Widget):
         )
         environment = st.selectbox(
             label="작업환경",
-            options=("Select an environment", "NAC", "EXCEL"),
+            options=("Select an environment", "NAC", "EXCEL", "LCT"),
             index=0,  # 'Select an environment'가 기본값이 됩니다.
         )
 
@@ -136,8 +136,10 @@ class ProcessorMenu(Widget):
             ),
             "alignment": Alignment(horizontal="center", vertical="center"),
             "start_idx": (
-                4 if self.state["environment"] == "EXCEL" else 2
-            ),  # excel은 세번째 row까지 merge되어있기 때문
+                4
+                if self.state["environment"] == "EXCEL"
+                else (3 if self.state["environment"] == "LCT" else 2)
+            ),  # excel은 세번째 row까지 merge되어있기 때문, LCT 는 2번째 row 까지 merge
         }
         super().__init__(root)
 
@@ -200,6 +202,8 @@ class ProcessorMenu(Widget):
             df = self.process_excel_data(df, src_lang, tgt_lang)
         elif environment == "NAC":
             df = self.process_nac_data(df, src_lang, tgt_lang)
+        elif environment == "LCT":
+            df = self.process_lct_data(df, src_lang, tgt_lang)
 
         return file_name, df
 
@@ -224,6 +228,23 @@ class ProcessorMenu(Widget):
         )
 
         error_checked_loc = only_data.columns.get_loc("Duplicated")
+        error_checked_df = only_data.iloc[:, error_checked_loc:]
+
+        return error_checked_df
+
+    def process_lct_data(self, df, src_lang, tgt_lang):
+
+        has_t2 = False  # this could be changed in the future
+        only_data = df.iloc[1:,]  # because headers(row 1-2) are merged
+
+        only_data = excel_emoji_error.get_emojis(only_data, has_t2)
+        only_data = excel_chars_error.get_chars_error(only_data, has_t2)
+        only_data = excel_emcha_error.get_emcha(only_data, has_t2, src_lang, tgt_lang)
+        only_data = excel_end_punct_error.get_end_punct_error(
+            only_data, has_t2, src_lang, tgt_lang
+        )
+
+        error_checked_loc = only_data.columns.get_loc("emoji_og")
         error_checked_df = only_data.iloc[:, error_checked_loc:]
 
         return error_checked_df
@@ -265,6 +286,14 @@ class ProcessorMenu(Widget):
             # create border for merged cell
             for idx in range(1, 4):
                 sheet[f"{col_letter}{idx}"].border = style["thin_border"]
+
+        elif self.state["environment"] == "LCT":
+            # merge header
+            sheet.merge_cells(f"{col_letter}1:{col_letter}2")
+            # create border for merged cell
+            for idx in range(1, 3):
+                sheet[f"{col_letter}{idx}"].border = style["thin_border"]
+
         else:
             sheet[f"{col_letter}1"].border = style["thin_border"]
 

@@ -38,7 +38,7 @@ def compare_end(og, t, src_lang, tgt_lang):
 def calculate_end(og, t, src_lang, tgt_lang):
     end_punct_error = []
     for e_og, e_t in zip(og, t):
-        if pd.isna(e_t):
+        if (pd.isna(e_t)) or (e_t is None) or (e_t.strip() == ""):  # 번역이 없는 경우
             end_punct_error.append(False)  # 번역이 없는 경우
         else:
             end_punct_error.append(compare_end(e_og, e_t, src_lang, tgt_lang))
