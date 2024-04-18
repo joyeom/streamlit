@@ -3,7 +3,9 @@ import pandas as pd
 import st_pop_up_component as sp
 import numpy as np
 import random
+from annotated_text import annotated_text
 
+print("this is lct.py")
 st.set_page_config(page_title="LCT", page_icon="./LCT/Flitto_symbol.jpg")
 st.title("LCT")
 
@@ -119,6 +121,7 @@ class Main(Widget):
 
                 for i, pair_obj in enumerate(pair_objects):
                     st.write(f"Pair {i+1}:")
+                    annotated_text((f"Pair {i+1}:"))
                     st.write(
                         f"**Excel**: {pair_obj['Excel'].name}, **JSON**: {pair_obj['Json'].name}"
                     )
@@ -131,28 +134,30 @@ class Main(Widget):
                             "Excel 파일의 수와 JSON 파일의 수가 일치하지 않습니다."
                         )
                     else:
-                        popup_output = sp.st_custom_pop_up(
-                            message="확실히 짝이 다 맞나요?", key=random.random()
-                        )
-                        print(
-                            "popup_output",
-                            popup_output,
-                            type(popup_output),
-                            "tab2_next",
-                            tab2_next_button,
-                        )
-                        popup_output
-                        if popup_output:
-                            with st.spinner("generating files...."):
-                                for e, j in zip(excel, json):
-                                    self.__DEFAULT_STATE["pair_dict"][e] = j
-                        else:
-                            tab2_next_button = False
+                        pass
+                        
+                        # popup_output = sp.st_custom_pop_up(
+                        #     message="확실히 짝이 다 맞나요?", key=random.random()
+                        # )
+                        # print(
+                        #     "popup_output",
+                        #     popup_output,
+                        #     type(popup_output),
+                        #     "tab2_next",
+                        #     tab2_next_button,
+                        # )
+                        # popup_output
+                        # if popup_output:
+                        #     with st.spinner("generating files...."):
+                        #         for e, j in zip(excel, json):
+                        #             self.__DEFAULT_STATE["pair_dict"][e] = j
+                        # else:
+                        #     tab2_next_button = False
                     # generate excel_json using pair_dict
                     # create download button then make it download as zip file
 
-        def get_state(self):
-            return self.__DEFAULT_STATE
+    def get_state(self):
+        return self.__DEFAULT_STATE
 
 
 class json_to_excel(Widget):
