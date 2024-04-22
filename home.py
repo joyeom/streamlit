@@ -2,8 +2,8 @@ import streamlit as st
 
 
 st.set_page_config(page_title="Home", page_icon="./Inspection/Flitto_symbol.jpg")
-st.title("Hi Data PM")
-st.subheader("This is the home page")
+st.title("Greetings, Data PM")
+st.subheader("Prepare to Embark on a Data Odyssey 🌌")
 st.image("./pages/Flitto_pretty.jpg")
 st.balloons()
 
