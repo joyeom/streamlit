@@ -1,9 +1,15 @@
 import streamlit as st
 import pandas as pd
 import st_pop_up_component as sp
-import numpy as np
-import random
-from annotated_text import annotated_text
+from io import BytesIO
+import zipfile
+
+# json > excel
+from File_Conversion.je import convert as json2excel
+
+# excel > json
+from File_Conversion.ej import convert as excel2json
+
 
 st.set_page_config(page_title="LCT", page_icon="./LCT/Flitto_symbol.jpg")
 st.title("LCT")
@@ -41,28 +47,60 @@ class Main(Widget):
 
         super().__init__(root)
 
+    def DEFAULT_SETTINGS(self):
+        for state in self.__DEFAULT_STATE:
+            if state not in st.session_state:
+                st.session_state[state] = self.__DEFAULT_STATE[state]
+            print(
+                "Default setting st.session_state[state]",
+                state,
+                st.session_state[state],
+                self.__DEFAULT_STATE[state],
+            )
+
+    def check_tab1_input_validity(self):
+        self.input_validity = all(
+            [
+                self.__DEFAULT_STATE["uploaded_file"] != [],
+                self.__DEFAULT_STATE["environment"] != "",
+                self.__DEFAULT_STATE["environment"] == "je",
+            ]
+        )
+
+        return self.input_validity
+
+    def check_tab2_input_validity(self):
+        self.input_validity = all(
+            [
+                self.__DEFAULT_STATE["uploaded_file"] != [],
+                self.__DEFAULT_STATE["environment"] != "",
+                self.__DEFAULT_STATE["environment"] == "ej",
+            ]
+        )
+
+        return self.input_validity
+
     def initUI(self):
-        tab1, tab2 = st.tabs(["json ➤ excel", "excel ➤ json"])
+        tab1, tab2 = st.tabs(["JSON ➤ EXCEL", "EXCEL ➤ JSON"])
 
         with tab1:
-            self.__DEFAULT_STATE["environment"] = "json ➤ excel"
+            self.__DEFAULT_STATE["environment"] = "je"  # json > excel
             # tab1.subheader("json ➤ excel")
 
             uploaded_file = st.file_uploader(
                 "Choose a File", accept_multiple_files=True, type=".json"
             )
             self.__DEFAULT_STATE["uploaded_file"] = uploaded_file
-            need_inspect = st.toggle("내부검수 추가")
-            self.__DEFAULT_STATE["need_inspect"] = need_inspect
-            tab1_next_button = st.button("Next", key="tab1")
-            if tab1_next_button:
-                st.spinner("generating files....")
-                # call json to excel class
-                # if need_inspect add inspect
-                # else convert it and make it download in zip file
+
+            if self.check_tab1_input_validity():
+                for s in self.__DEFAULT_STATE:
+                    print("여기는 tab1 input", s, self.__DEFAULT_STATE[s])
+
+                if st.button("Next"):
+                    self.on_next_click()
 
         with tab2:
-            self.__DEFAULT_STATE["environment"] = "excel ➤ json"
+            self.__DEFAULT_STATE["environment"] = "ej"  # excel > json
             # tab2.subheader("excel ➤ json")
 
             # Displaying instructions within a callout box
@@ -128,42 +166,73 @@ class Main(Widget):
 
                 tab2_next_button = st.button("Next", key="tab2")
 
-                if tab2_next_button:
-                    pass
-                    # download as zip file
+                if self.check_tab2_input_validity():
+                    for s in self.__DEFAULT_STATE:
+                        print("after input", s, self.__DEFAULT_STATE[s])
 
-                    # popup_output = sp.st_custom_pop_up(
-                    #     message="확실히 짝이 다 맞나요?", key=random.random()
-                    # )
-                    # print(
-                    #     "popup_output",
-                    #     popup_output,
-                    #     type(popup_output),
-                    #     "tab2_next",
-                    #     tab2_next_button,
-                    # )
-                    # popup_output
-                    # if popup_output:
-                    #     with st.spinner("generating files...."):
-                    #         for e, j in zip(excel, json):
-                    #             self.__DEFAULT_STATE["pair_dict"][e] = j
-                    # else:
-                    #     tab2_next_button = False
-                    # generate excel_json using pair_dict
-                    # create download button then make it download as zip file
+                    if st.button("Next", key="tab2", on_click=self.on_next_click):
+                        pass
+
+    def on_next_click(self):
+        env = self.__DEFAULT_STATE["environment"]
+        if env == "je":
+            print("je 안으로 들어옴")
+            je_menu = json_to_excel(self)
+        elif env == "ej":
+            ej_menu = excel_to_json(self)
+        else:
+            raise ValueError("Not expected environment")
 
     def get_state(self):
         return self.__DEFAULT_STATE
 
 
 class json_to_excel(Widget):
-    def __init__(self, root=None):
-        self.state = self.__getstate__()
+    def __init__(self, instance, root=None):
+        self.state = instance.get_state()
+        super().__init__(root)
+
+    def initUI(self):
+        with st.spinner("파일 전환 중.."):
+            for s in self.state:
+                print("state in jsontoexcel calss", s, self.state[s])
+
+            zip_buffer = self.create_zip_file(self.state["uploaded_file"])
+            # Zip 파일 다운로드
+            st.download_button(
+                label="Download Zip",
+                data=zip_buffer,
+                file_name="json_to_excel.zip",
+                mime="application/zip",
+            )
+
+    def create_zip_file(self, uploaded_files):
+        # BytesIO 객체 생성
+        zip_buffer = BytesIO()
+
+        # Zip 파일 생성
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zf:
+            for uploaded_file in uploaded_files:
+                file_name = uploaded_file.name[:-5] + ".xlsx"  # to remove .json
+                converted_file = self.je_convert_data(uploaded_file)  # gets .xlsx file
+                zf.writestr(file_name, converted_file.getvalue())
+
+        # BytesIO 객체의 커서 위치를 파일의 시작으로 이동
+        zip_buffer.seek(0)
+
+        return zip_buffer
+
+    def je_convert_data(self, json_file):
+        return json2excel.get_data(json_file)
 
 
 class excel_to_json(Widget):
-    def __init__(self, root=None):
-        self.state = self.__getstate__()
+    def __init__(self, instance, root=None):
+        self.state = instance.get_state()
+        super().__init__(root)
+
+    def ej_convert_data(self, excel_file):
+        return excel2json.update_json_with_excel_data(excel_file)
 
 
 if __name__ == "__main__":
