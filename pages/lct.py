@@ -3,6 +3,7 @@ import pandas as pd
 import st_pop_up_component as sp
 from io import BytesIO
 import zipfile
+from io import StringIO
 
 # json > excel
 from File_Conversion.je import convert as json2excel
@@ -11,8 +12,8 @@ from File_Conversion.je import convert as json2excel
 from File_Conversion.ej import convert as excel2json
 
 
-st.set_page_config(page_title="LCT", page_icon="./LCT/Flitto_symbol.jpg")
-st.title("LCT")
+st.set_page_config(page_title="LCT", page_icon="./Inspection/Flitto_symbol.jpg")
+st.title("LCT File Converter")
 
 # hide streamlit toolbar on top
 hide_streamlit_style = """
@@ -81,12 +82,18 @@ class Main(Widget):
         return self.input_validity
 
     def initUI(self):
-        tab1, tab2 = st.tabs(["JSON ➤ EXCEL", "EXCEL ➤ JSON"])
+        tab1, tab2 = st.tabs(["JSON ▶ EXCEL", "EXCEL ▶ JSON"])
 
         with tab1:
             self.__DEFAULT_STATE["environment"] = "je"  # json > excel
             # tab1.subheader("json ➤ excel")
-
+            st.info(
+                """
+                **파일 업로드 시 주의사항:** \n
+                - 'Browse files' 버튼을 사용하여 파일을 업로드하세요. \n
+                - 원하는 파일이 표시되지 않으면, ZIP 파일을 압축 해제해주세요.
+                """
+            )
             uploaded_file = st.file_uploader(
                 "Choose a File", accept_multiple_files=True, type=".json"
             )
@@ -106,10 +113,10 @@ class Main(Widget):
             # Displaying instructions within a callout box
             st.info(
                 """
-            **Excel과 원문 JSON 파일을 모두 짝지어서 올려주세요**
-
-            :red[주의!] 매칭될 Excel 파일과 JSON 파일의 **이름이 같아야합니다**
-            """
+                **파일 업로드 시 주의사항:** \n
+                - 'Browse files' 버튼을 사용하여 EXCEL 파일과 JSON 파일을 모두 업로드하세요. \n
+                - 파일들을 매칭시키려면 :red[**이름이 동일해야 합니다**]
+                """
             )
 
             # Create an empty placeholder for dynamic content
@@ -138,7 +145,7 @@ class Main(Widget):
                 """
 
                 st.markdown(f"<div style='{arrow_css}'>▷</div>", unsafe_allow_html=True)
-                # ➤,▷,➡️
+                # ➤,▷,➡️,▶,➲
 
             with ej_col2:
                 uploaded_json = st.file_uploader(
@@ -223,7 +230,7 @@ class json_to_excel(Widget):
         return zip_buffer
 
     def je_convert_data(self, json_file):
-        return json2excel.get_data(json_file)
+        return json2excel.get_data(json_file.read())
 
 
 class excel_to_json(Widget):
@@ -232,7 +239,7 @@ class excel_to_json(Widget):
         super().__init__(root)
 
     def ej_convert_data(self, excel_file):
-        return excel2json.update_json_with_excel_data(excel_file)
+        return excel2json.update_json_with_excel_data(excel_file.getvalue())
 
 
 if __name__ == "__main__":

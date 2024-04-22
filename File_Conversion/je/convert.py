@@ -10,7 +10,7 @@ from openpyxl.styles import PatternFill, Border, Side
 from io import BytesIO
 import json
 import streamlit as st
-
+from io import StringIO
 
 # Define styles
 grey_fill = PatternFill(start_color="BFBFBF", end_color="BFBFBF", fill_type="solid")
@@ -71,29 +71,31 @@ def extract_data(data):
     return df
 
 
+
 def get_data(json_file):
-    try:
-        content = json_file.read()
-        data = json.loads(content)
+    # try:
+    #    data = json.loads(json_file)
 
-    except json.JSONDecodeError:
-        st.error("Invalid JSON file. Please upload a valid JSON file.")
+    # except json.JSONDecodeError:
+    #     st.error("Invalid JSON file. Please upload a valid JSON file.")
 
-    extracted_data = extract_data(data)  # returns pandas dataframe
+    
+    data = json_file.decode('utf-8')
+    json_data = json.loads(data)
+    #data = json.load(json_file)
+    extracted_data = extract_data(json_data)  # returns pandas dataframe
 
     # Excel 파일로 변환
     excel_buffer = BytesIO()
-    wb = Workbook() # Create a new Workbook
+    wb = Workbook()  # Create a new Workbook
     sheet = wb.active
 
-
-    apply_style(sheet,extracted_data)
+    sheet = apply_style(sheet, extracted_data)
 
     wb.save(excel_buffer)
 
-
     # with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-    #     apply_style(writer, extracted_data) #apply style to the excel 
+    #     apply_style(writer, extracted_data) #apply style to the excel
     #     extracted_data.to_excel(writer, index=False) #write data
 
     excel_buffer.seek(0)
@@ -126,10 +128,11 @@ def apply_style(sheet, df):
         for i in range(len(headers)):
             add_start = get_column_letter(i + 1)
             for idx, value in enumerate(df[headers[i]], start=2):
-                sheet[f"{add_start}{idx}"] = value #write value here 
+                sheet[f"{add_start}{idx}"] = value  # write value here
                 sheet[f"{add_start}{idx}"].border = thin_border
                 sheet[f"{add_start}{idx}"].alignment = Alignment(
                     vertical="top", wrapText=True
                 )
 
         sheet.row_dimensions[1].height = None
+    return sheet

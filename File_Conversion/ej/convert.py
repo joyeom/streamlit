@@ -65,3 +65,7 @@ def update_json_with_excel_data(excel_file, json_file):
             ann["domains"][domain] = updated_data[domain][idx]
         for checkbox in checkbox_col:
             ann["checkBoxes"][checkbox] = updated_data[checkbox][idx]
+# # Write the updated data back to the JSON file
+
+# with open("/content/drive/MyDrive/B/LCT/final_output.json", 'w', encoding='utf-8') as json_file:
+#     json.dump(json_data, json_file,ensure_ascii=False,indent =4)
