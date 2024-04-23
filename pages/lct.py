@@ -3,7 +3,6 @@ import pandas as pd
 import st_pop_up_component as sp
 from io import BytesIO
 import zipfile
-from io import StringIO
 
 # json > excel
 from File_Conversion.je import convert as json2excel
@@ -183,7 +182,6 @@ class Main(Widget):
     def on_next_click(self):
         env = self.__DEFAULT_STATE["environment"]
         if env == "je":
-            print("je 안으로 들어옴")
             je_menu = json_to_excel(self)
         elif env == "ej":
             ej_menu = excel_to_json(self)
@@ -230,7 +228,7 @@ class json_to_excel(Widget):
         return zip_buffer
 
     def je_convert_data(self, json_file):
-        return json2excel.get_data(json_file.read())
+        return json2excel.convert_json_to_excel(json_file.getvalue())
 
 
 class excel_to_json(Widget):

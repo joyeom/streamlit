@@ -10,7 +10,7 @@ from openpyxl.styles import PatternFill, Border, Side
 from io import BytesIO
 import json
 import streamlit as st
-from io import StringIO
+
 
 # Define styles
 grey_fill = PatternFill(start_color="BFBFBF", end_color="BFBFBF", fill_type="solid")
@@ -34,8 +34,6 @@ thin_border = Border(
     top=Side(style="thin"),
     bottom=Side(style="thin"),
 )
-
-
 domains_col = ["ecommerce", "refEdu", "socialMedia", "literature", "other"]
 errorType_col = [
     "wrongLang",
@@ -49,81 +47,57 @@ errorType_col = [
 ]
 
 
-def extract_data(data):
-    # Extract the desired fields from each annotation and create a list of dictionaries
-    annotations_data = []
-    for annotation in data["annotations"]:
-        annotation_dict = {
-            "id": annotation["id"],
-            "relevantContextBefore": annotation["relevantContextBefore"],
-            "payload": annotation["payload"],
-            "relevantContextAfter": annotation["relevantContextAfter"],
-            "translation": annotation["translation"],
-        }
-        annotation_dict.update(
-            annotation["checkBoxes"]
-        )  # Add checkBoxes keys as columns
-        annotation_dict.update(annotation["domains"])  # Add domains keys as columns
-        annotations_data.append(annotation_dict)
+def create_df(data):
+    # get "annotation" field in json file
+    df = pd.DataFrame(data["annotations"])
+    domains = pd.DataFrame([item["domains"] for item in data["annotations"]])
+    checkBoxes = pd.DataFrame([item["checkBoxes"] for item in data["annotations"]])
+    df = df.drop(columns=["domains", "checkBoxes"])
+    df = pd.concat([df, domains, checkBoxes], axis=1)
 
-    # Create a DataFrame from the list of dictionaries
-    df = pd.DataFrame(annotations_data)
     return df
 
 
+def convert_json_to_excel(json_file):
+    try:
+        data = json.loads(json_file)
 
-def get_data(json_file):
-    # try:
-    #    data = json.loads(json_file)
+    except json.JSONDecodeError:
+        st.error("Browses files 안에 보이는 파일들로 선택해주세요")
 
-    # except json.JSONDecodeError:
-    #     st.error("Invalid JSON file. Please upload a valid JSON file.")
-
-    
-    data = json_file.decode('utf-8')
-    json_data = json.loads(data)
-    #data = json.load(json_file)
-    extracted_data = extract_data(json_data)  # returns pandas dataframe
+    annotations = create_df(data)
 
     # Excel 파일로 변환
     excel_buffer = BytesIO()
     wb = Workbook()  # Create a new Workbook
     sheet = wb.active
-
-    sheet = apply_style(sheet, extracted_data)
-
+    sheet = apply_style(sheet, annotations)
     wb.save(excel_buffer)
-
-    # with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-    #     apply_style(writer, extracted_data) #apply style to the excel
-    #     extracted_data.to_excel(writer, index=False) #write data
-
     excel_buffer.seek(0)
     return excel_buffer
 
 
 def apply_style(sheet, df):
-    # sheet = writer.sheets["Sheet1"]  # Get the sheet from the writer object
 
-    # Add headers to the Excel sheet with color coding and column width adjustments
     headers = df.columns
 
     for col_index, header in enumerate(headers, start=1):
         cell = sheet.cell(row=1, column=col_index, value=header)
         cell.alignment = Alignment(horizontal="center", vertical="center")
         cell.border = thin_border
+        column_letter = get_column_letter(col_index)
+        column = sheet.column_dimensions[column_letter]
         if "relevant" in header or header in ["payload", "translation"]:
             cell.fill = grey_fill if "relevant" in header else light_green_fill
-            column_letter = get_column_letter(col_index)
-            column = sheet.column_dimensions[column_letter]
             column.width = 60
 
         elif header in domains_col:
             cell.fill = light_yellow_fill
         elif header in errorType_col:
             cell.fill = light_pink_fill
-        else:
+        else:  # id, annotatorID, source
             cell.fill = light_blue_fill
+            column.width = 10
 
         for i in range(len(headers)):
             add_start = get_column_letter(i + 1)
