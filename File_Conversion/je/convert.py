@@ -71,42 +71,60 @@ def convert_json_to_excel(json_file):
     excel_buffer = BytesIO()
     wb = Workbook()  # Create a new Workbook
     sheet = wb.active
+    # apply style
     sheet = apply_style(sheet, annotations)
     wb.save(excel_buffer)
     excel_buffer.seek(0)
     return excel_buffer
 
 
-def apply_style(sheet, df):
+def apply_header_style(cell, column, header):
 
+    cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    if "relevant" in header or header in ["payload", "translation"]:
+        cell.fill = grey_fill if "relevant" in header else light_green_fill
+        column.width = 60
+    elif header in domains_col:
+        cell.fill = light_yellow_fill
+    elif header in errorType_col:
+        cell.fill = light_pink_fill
+    else:  # id, annotatorID, source
+        cell.fill = light_blue_fill
+        column.width = 10
+
+
+def write_header_value(cell, header):
+    cell.value = header
+
+
+def apply_cell_style(cell):
+    cell.border = thin_border
+    cell.alignment = Alignment(vertical="top", wrapText=True)
+
+
+def write_cell_value(cell, value):
+    cell.value = value
+
+
+def apply_style(sheet, df):
     headers = df.columns
 
+    # header
     for col_index, header in enumerate(headers, start=1):
-        cell = sheet.cell(row=1, column=col_index, value=header)
-        cell.alignment = Alignment(horizontal="center", vertical="center")
-        cell.border = thin_border
         column_letter = get_column_letter(col_index)
         column = sheet.column_dimensions[column_letter]
-        if "relevant" in header or header in ["payload", "translation"]:
-            cell.fill = grey_fill if "relevant" in header else light_green_fill
-            column.width = 60
+        cell = sheet.cell(row=1, column=col_index)
+        write_header_value(cell, header)
+        apply_header_style(cell, column, header)
 
-        elif header in domains_col:
-            cell.fill = light_yellow_fill
-        elif header in errorType_col:
-            cell.fill = light_pink_fill
-        else:  # id, annotatorID, source
-            cell.fill = light_blue_fill
-            column.width = 10
+    # non-header
+    for col_index, col_name in enumerate(headers, start=1):
+        column_letter = get_column_letter(col_index)
+        for idx, value in enumerate(df[col_name], start=2):
+            cell = sheet[f"{column_letter}{idx}"]
+            write_cell_value(cell, value)
+            apply_cell_style(cell)
 
-        for i in range(len(headers)):
-            add_start = get_column_letter(i + 1)
-            for idx, value in enumerate(df[headers[i]], start=2):
-                sheet[f"{add_start}{idx}"] = value  # write value here
-                sheet[f"{add_start}{idx}"].border = thin_border
-                sheet[f"{add_start}{idx}"].alignment = Alignment(
-                    vertical="top", wrapText=True
-                )
-
-        sheet.row_dimensions[1].height = None
+    sheet.row_dimensions[1].height = None
     return sheet
