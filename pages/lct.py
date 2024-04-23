@@ -38,7 +38,7 @@ class Main(Widget):
     def __init__(self, root=None):
         self.__DEFAULT_STATE = {
             "uploaded_file": [],  # used in "json -> excel" tab
-            "pair_list": [],  # used in  "excel -> json" tab and [{excel1 : json1}, {excel2 : json2}]
+            "pair_list": [],  # used in  "excel -> json" tab and [[excel1 : json1], [excel2 : json2]..]
             "need_inspect": False,
             "environment": "",
             "src_lang": "",
@@ -72,7 +72,7 @@ class Main(Widget):
     def check_tab2_input_validity(self):
         self.input_validity = all(
             [
-                self.__DEFAULT_STATE["uploaded_file"] != [],
+                self.__DEFAULT_STATE["pair_list"] != [],
                 self.__DEFAULT_STATE["environment"] != "",
                 self.__DEFAULT_STATE["environment"] == "ej",
             ]
@@ -155,29 +155,67 @@ class Main(Widget):
                 )
 
             if uploaded_excel and uploaded_json:
-                unmatched = []  # add unmatched files
-                # 이름이 같은걸로 자동 match
-                for excel in uploaded_excel:
-                    excel_name = excel.name[:-5]  # due to .xlsx
-                    for json in uploaded_json:
-                        json_name = json.name[:-5]  # due to .json
-                        if excel_name == json_name:
-                            self.__DEFAULT_STATE["pair_list"].append({excel: json})
+                pair, unmatched = self.match_pairs(uploaded_excel, uploaded_json)
+                self.__DEFAULT_STATE["pair_list"] = pair
 
-                print("넣은 후", self.__DEFAULT_STATE["pair_list"])
-                for i, (key, val) in enumerate(self.__DEFAULT_STATE["pair_list"]):
-                    st.write(f"Pair {i+1}:")
-                    st.write(f"**Excel**: {key.name}, **JSON**: {val.name}")
-                    st.write(f"제외된 파일: {unmatched} ")
+                # Create DataFrame for matched pairs
+                pair_df = pd.DataFrame(
+                    [
+                        (key.name, val.name)
+                        for key, val in self.__DEFAULT_STATE["pair_list"]
+                    ],
+                    columns=["Excel", "JSON"],
+                )
 
-                tab2_next_button = st.button("Next", key="tab2")
+                max_length = max(len(arr) for arr in unmatched)
+                unmatched_padded = [
+                    (arr + [None] * (max_length - len(arr))) for arr in unmatched
+                ]
+
+                # Create DataFrame for unmatched items
+                unmatched_df = pd.DataFrame(
+                    {
+                        "Excel": [
+                            item.name if item else "" for item in unmatched_padded[0]
+                        ],
+                        "JSON": [
+                            item.name if item else "" for item in unmatched_padded[1]
+                        ],
+                    }
+                )
+
+                # Display matched pairs and unmatched items as tables
+                st.write("## Matched Pairs")
+                st.table(pair_df)
+
+                st.write("## Unmatched Items")
+                st.table(unmatched_df)
 
                 if self.check_tab2_input_validity():
                     for s in self.__DEFAULT_STATE:
                         print("after input", s, self.__DEFAULT_STATE[s])
 
-                    if st.button("Next", key="tab2", on_click=self.on_next_click):
-                        pass
+                    if st.button("Next"):
+                        self.on_next_click()
+
+    def match_pairs(self, list1, list2):
+        dict1 = {item.name[:-5]: item for item in list1}
+        dict2 = {item.name[:-5]: item for item in list2}
+        pair = []
+
+        # Iterate over unique names in both dictionaries
+        for name in set(dict1.keys()) & set(dict2.keys()):
+            pair.append([dict1[name], dict2[name]])
+
+        # Any unmatched items left
+        unmatched = [
+            [
+                item for name, item in dict1.items() if name not in set(dict2.keys())
+            ],  # excel
+            [item for name, item in dict2.items() if name not in set(dict1.keys())],
+        ]  # json
+
+        return pair, unmatched
 
     def on_next_click(self):
         env = self.__DEFAULT_STATE["environment"]
