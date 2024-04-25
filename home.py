@@ -15,3 +15,6 @@ footer {visibility: hidden !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
+#https://github.com/blackary/st_pages => 이걸로 나중에 페이지 수정하기 

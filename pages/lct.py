@@ -102,7 +102,7 @@ class Main(Widget):
                 for s in self.__DEFAULT_STATE:
                     print("여기는 tab1 input", s, self.__DEFAULT_STATE[s])
 
-                if st.button("Next"):
+                if st.button("Next",key ='tab1'):
                     self.on_next_click()
 
         with tab2:
@@ -195,7 +195,8 @@ class Main(Widget):
                     for s in self.__DEFAULT_STATE:
                         print("after input", s, self.__DEFAULT_STATE[s])
 
-                    if st.button("Next"):
+                    if st.button("Next",key = 'tab2'):
+                        st.warning("Matched Pairs만 생성됩니다",icon="⚠️")
                         self.on_next_click()
 
     def match_pairs(self, list1, list2):
@@ -274,8 +275,42 @@ class excel_to_json(Widget):
         self.state = instance.get_state()
         super().__init__(root)
 
-    def ej_convert_data(self, excel_file):
-        return excel2json.update_json_with_excel_data(excel_file.getvalue())
+
+    def initUI(self):
+        with st.spinner("새로운 값을 JSON에 입히는 중.."):
+            for s in self.state:
+                print("state in jsontoexcel calss", s, self.state[s])
+
+            zip_buffer = self.create_zip_file(self.state["pair_list"])
+            # Zip 파일 다운로드
+            st.download_button(
+                label="Download Zip",
+                data=zip_buffer,
+                file_name="excel_to_json.zip",
+                mime="application/zip",
+            )
+
+    def create_zip_file(self, ej_pairs):
+        # BytesIO 객체 생성
+        zip_buffer = BytesIO()
+
+        # Zip 파일 생성
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zf:
+            for (excel,json) in ej_pairs:
+                file_name = json.name  # use same json file's name
+                converted_file = self.ej_convert_data(excel,json)  # gets .json string
+                zf.writestr(file_name, converted_file)
+
+        # BytesIO 객체의 커서 위치를 파일의 시작으로 이동
+        zip_buffer.seek(0)
+
+        return zip_buffer
+
+    def ej_convert_data(self,excel_file,json_file):
+        #excel_file.getvalue() => bytes 클래스 => 불변
+        #BytesIO(excel_file.getvalue()) => BytesIo 클래스 => 변환 가능
+    
+        return excel2json.update_json_with_excel_data(excel_file,json_file)
 
 
 if __name__ == "__main__":
