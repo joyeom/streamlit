@@ -79,6 +79,7 @@ def convert_json_to_excel(json_file):
 def apply_header_style(cell, column, header):
 
     cell.alignment = Alignment(horizontal="center", vertical="center")
+    cell.border = thin_border
 
     if "relevant" in header or header in ["payload", "translation"]:
         cell.fill = grey_fill if "relevant" in header else light_green_fill

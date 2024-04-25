@@ -38,10 +38,7 @@ class Main(Widget):
         self.__DEFAULT_STATE = {
             "uploaded_file": [],  # used in "json -> excel" tab
             "pair_list": [],  # used in  "excel -> json" tab and [[excel1 : json1], [excel2 : json2]..]
-            "need_inspect": False,
             "environment": "",
-            "src_lang": "",
-            "tgt_lang": "",
         }
 
         super().__init__(root)
@@ -101,7 +98,7 @@ class Main(Widget):
                 for s in self.__DEFAULT_STATE:
                     print("여기는 tab1 input", s, self.__DEFAULT_STATE[s])
 
-                if st.button("Next",key ='tab1'):
+                if st.button("Next", key="tab1"):
                     self.on_next_click()
 
         with tab2:
@@ -194,8 +191,8 @@ class Main(Widget):
                     for s in self.__DEFAULT_STATE:
                         print("after input", s, self.__DEFAULT_STATE[s])
 
-                    if st.button("Next",key = 'tab2'):
-                        st.warning("Matched Pairs만 생성됩니다",icon="⚠️")
+                    if st.button("Next", key="tab2"):
+                        st.warning("Matched Pairs만 생성됩니다", icon="⚠️")
                         self.on_next_click()
 
     def match_pairs(self, list1, list2):
@@ -274,7 +271,6 @@ class excel_to_json(Widget):
         self.state = instance.get_state()
         super().__init__(root)
 
-
     def initUI(self):
         with st.spinner("새로운 값을 JSON에 입히는 중.."):
             for s in self.state:
@@ -295,9 +291,9 @@ class excel_to_json(Widget):
 
         # Zip 파일 생성
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zf:
-            for (excel,json) in ej_pairs:
+            for excel, json in ej_pairs:
                 file_name = json.name  # use same json file's name
-                converted_file = self.ej_convert_data(excel,json)  # gets .json string
+                converted_file = self.ej_convert_data(excel, json)  # gets .json string
                 zf.writestr(file_name, converted_file)
 
         # BytesIO 객체의 커서 위치를 파일의 시작으로 이동
@@ -305,8 +301,8 @@ class excel_to_json(Widget):
 
         return zip_buffer
 
-    def ej_convert_data(self,excel_file,json_file):
-        return excel2json.update_json_with_excel_data(excel_file,json_file)
+    def ej_convert_data(self, excel_file, json_file):
+        return excel2json.update_json_with_excel_data(excel_file, json_file)
 
 
 if __name__ == "__main__":
