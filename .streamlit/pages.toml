@@ -1,0 +1,16 @@
+[[pages]]
+path = "home.py"
+name = "Home"
+icon = "🏠"
+
+
+[[pages]]
+path = "pages/check.py"
+name = "Check"
+icon = ":books:"
+
+
+[[pages]]
+path = "pages/lct.py"
+name = "LCT"
+icon = "💪"

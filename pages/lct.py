@@ -10,7 +10,7 @@ from File_Conversion.je import convert as json2excel
 from File_Conversion.ej import convert as excel2json
 
 
-st.set_page_config(page_title="LCT", page_icon="./Inspection/Flitto_symbol.jpg")
+st.set_page_config(page_title="LCT", page_icon="./Inspection/Flitto_symbol.jpg",layout='wide')
 st.title("LCT File Converter")
 
 # hide streamlit toolbar on top
@@ -135,7 +135,7 @@ class Main(Widget):
                     justify-content: center;
                     font-size: 30px;
                     position: relative;
-                    top:60px;
+                    top:40px;
                     left:3px;
                 """
 

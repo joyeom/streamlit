@@ -25,7 +25,7 @@ import pandas as pd
 from io import BytesIO
 import zipfile
 
-st.set_page_config(page_title="Inspection", page_icon="./Inspection/Flitto_symbol.jpg")
+st.set_page_config(page_title="Inspection", page_icon="./Inspection/Flitto_symbol.jpg",layout='wide')
 st.title("내부검수")
 
 # hide streamlit toolbar on top
