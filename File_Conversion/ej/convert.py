@@ -2,7 +2,6 @@ from io import BytesIO
 import pandas as pd
 import json
 import streamlit as st
-import jsonpickle
 import numpy as np
 
 domains_col = ["ecommerce", "refEdu", "socialMedia", "literature", "other"]
@@ -46,8 +45,6 @@ def update_json_with_excel_data(excel_file, json_file):
         for checkbox in checkbox_col:
             ann["checkBoxes"][checkbox] = updated_data[idx][checkbox]
 
-    st.json(og)
-    print(type(og))
     updated_json = json.dumps(og, ensure_ascii=False, indent=4)
 
     return updated_json

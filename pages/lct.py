@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import st_pop_up_component as sp
 from io import BytesIO
 import zipfile
 
@@ -307,9 +306,6 @@ class excel_to_json(Widget):
         return zip_buffer
 
     def ej_convert_data(self,excel_file,json_file):
-        #excel_file.getvalue() => bytes 클래스 => 불변
-        #BytesIO(excel_file.getvalue()) => BytesIo 클래스 => 변환 가능
-    
         return excel2json.update_json_with_excel_data(excel_file,json_file)
 
 

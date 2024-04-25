@@ -1,5 +1,3 @@
-# we only need annotations from json file
-# convert json to excel in NAC so that we can do internal audit tool
 import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.worksheet.datavalidation import DataValidation
